@@ -24,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.listycity.ui.theme.ListyCityTheme
@@ -40,6 +39,7 @@ class MainActivity : ComponentActivity() {
                     CityListScreen(
                         cities = cityRepository.cities,
                         onAddCity = { cityRepository.addCity(it) },
+                        onDeleteCity = { cityRepository.deleteCity(it) },
                         modifier = Modifier.padding(paddingValues = innerPadding)
                     )
                 }
@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
 fun CityListScreen(
     cities: List<String>,
     onAddCity: (String) -> Unit,
+    onDeleteCity: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var newCityName by remember {mutableStateOf(value = "") }
@@ -69,7 +70,7 @@ fun CityListScreen(
 
             Button(
                 onClick = {
-                    if (newCityName.isNotBlank()) {
+                    if (newCityName.isNotBlank() && !cities.contains(newCityName)) {
                         onAddCity(newCityName)
                         newCityName = ""
                     }
@@ -81,36 +82,33 @@ fun CityListScreen(
 
         LazyColumn(modifier = modifier.fillMaxSize()) {
             items(cities) { city ->
-                CityRow(city = city)
+                CityRow(city = city, onDeleteCity = onDeleteCity)
             }
         }
     }
 }
 
 @Composable
-fun CityRow(city: String) {
-    Text(
-        text = city,
-        fontSize = 28.sp,
+fun CityRow(city: String, onDeleteCity: (String) -> Unit) {
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 14.dp)
-    )
-}
+        .fillMaxWidth()
+        .padding(horizontal = 18.dp, vertical = 14.dp)
+    ) {
+        Text(
+            text = city,
+            fontSize = 28.sp
+        )
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+        Spacer(modifier = Modifier.weight(1f))
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ListyCityTheme {
-        Greeting("Android")
+        Button(
+            onClick = {
+                onDeleteCity(city)
+            }
+        ) {
+            Text("Delete")
+        }
     }
 }
 
@@ -122,5 +120,9 @@ class CityRepository {
 
     fun addCity(city: String) {
         _cities.add(city)
+    }
+
+    fun deleteCity(city: String) {
+        _cities.remove(city)
     }
 }
